@@ -1,0 +1,9 @@
+aws_region        = "us-east-1"
+ami_id            = "ami-xxxxxxxxxxxxxxxxx"
+instance_type     = "t2.medium"
+key_name          = "your-keypair"
+ssh_user          = "ubuntu"
+master_name       = "k8s-master"
+worker_count      = 2
+availability_zone = "us-east-1a"
+vpc_cidr          = "10.10.0.0/16"

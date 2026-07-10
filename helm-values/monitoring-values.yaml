@@ -1,0 +1,23 @@
+grafana:
+  ingress:
+    enabled: true
+    ingressClassName: nginx
+
+    hosts:
+      - grafana
+
+    path: /
+
+    pathType: Prefix
+
+prometheus:
+  ingress:
+    enabled: true
+    ingressClassName: nginx
+
+    hosts:
+      - prometheus
+
+    path: /
+
+    pathType: Prefix

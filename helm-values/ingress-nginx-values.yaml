@@ -1,0 +1,23 @@
+controller:
+  kind: Deployment
+
+  replicaCount: 1
+
+  hostNetwork: true
+
+  dnsPolicy: ClusterFirstWithHostNet
+
+  service:
+    enabled: false
+
+  hostPort:
+    enabled: true
+
+  nodeSelector:
+    node-role.kubernetes.io/control-plane: ""
+
+  tolerations:
+    - key: node-role.kubernetes.io/control-plane
+      operator: Exists
+      effect: NoSchedule
+
