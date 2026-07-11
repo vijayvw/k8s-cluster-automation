@@ -64,6 +64,7 @@ bash scripts/install/11-argocd.sh
 
 bash scripts/install/12-local-path-storage.sh
 
+bash scripts/install/13-external-secrets.sh 
 #############################################
 # Cluster Status
 #############################################
