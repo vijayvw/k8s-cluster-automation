@@ -189,5 +189,5 @@ resource "aws_security_group" "worker_sg" {
     to_port     = 32767
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
-}
+  }
 }

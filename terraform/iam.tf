@@ -34,11 +34,11 @@ resource "aws_iam_policy" "k8s_ssm_policy" {
         Effect = "Allow"
 
         Action = [
-  	 "ssm:GetParameter",
-         "ssm:GetParameters",
-         "ssm:GetParametersByPath",
-         "ssm:PutParameter",
-         "ssm:DeleteParameter"
+          "ssm:GetParameter",
+          "ssm:GetParameters",
+          "ssm:GetParametersByPath",
+          "ssm:PutParameter",
+          "ssm:DeleteParameter"
         ]
 
         Resource = "*"
@@ -73,10 +73,11 @@ resource "aws_iam_policy" "k8s_secretsmanager_policy" {
         Effect = "Allow"
 
         Action = [
-  	  "secretsmanager:GetSecretValue",
-   	  "secretsmanager:DescribeSecret",
-  	  "secretsmanager:ListSecrets",
-  	  "secretsmanager:ListSecretVersionIds"
+          "secretsmanager:GetSecretValue",
+          "secretsmanager:DescribeSecret",
+          "secretsmanager:ListSecrets",
+          "secretsmanager:ListSecretVersionIds",
+          "secretsmanager:PutSecretValue"
         ]
 
         Resource = "*"

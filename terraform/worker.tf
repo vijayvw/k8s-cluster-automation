@@ -18,7 +18,7 @@ resource "aws_instance" "worker" {
   })
 
   root_block_device {
-    volume_size = var.root_volume_size 
+    volume_size = var.root_volume_size
     volume_type = "gp3"
     encrypted   = true
   }
