@@ -909,58 +909,31 @@ monitoring   kube-prometheus-stack-grafana      grafana
 monitoring   kube-prometheus-stack-prometheus   prometheus
 ```
 ---
+# 🔑 Default Login Credentials
 
-Access the platform:
+After the platform components are deployed, use the following default credentials to access the platform services.
 
-| Component | URL |
-|-----------|-----|
-| Grafana | http://grafana |
-| Prometheus | http://prometheus |
-| Argo CD | https://argocd |
+| Component | URL | Username | Password |
+|-----------|-----|----------|----------|
+| **Grafana** | `http://grafana` | `admin` | Retrieve using the command below |
+| **Argo CD** | `http://argocd` | `admin` | Retrieve using the command below |
+| **Prometheus** | `http://prometheus` | Not Required | No authentication by default |
 
----
+## Retrieve Grafana Admin Password
 
-Default Login Credentials
-
-After the platform components are deployed, use the following default usernames and retrieve the generated passwords from Kubernetes Secrets.
-
-Grafana
-
-URL: http://grafana
-
-Username:
-
-admin
-
-Retrieve the admin password:
-
+```bash
 kubectl get secret -n monitoring kube-prometheus-stack-grafana \
   -o jsonpath="{.data.admin-password}" | base64 -d && echo
+```
 
-⸻
+## Retrieve Argo CD Initial Password
 
-Argo CD
-
-URL: http://argocd
-
-Username:
-
-admin
-
-Retrieve the initial admin password:
-
-kubectl -n argocd get secret argocd-initial-admin-secret \
+```bash
+kubectl get secret -n argocd argocd-initial-admin-secret \
   -o jsonpath="{.data.password}" | base64 -d && echo
+```
 
-Note: The initial Argo CD password is generated automatically during installation. It is recommended to change it after your first login.
-
-⸻
-
-Prometheus
-
-URL: http://prometheus
-
-Prometheus does not require authentication by default when deployed using the default kube-prometheus-stack configuration.
+> **Note:** The initial Argo CD password is generated automatically during installation. For security, change it after your first login.
 
 ---
 
