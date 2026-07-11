@@ -39,6 +39,8 @@ Provision a complete Kubernetes platform using <strong>Terraform</strong>, <stro
 - 📈 Prometheus Monitoring Stack
 - 📊 Grafana Dashboards
 - 🔄 Argo CD GitOps Platform
+- 🔑 External Secrets Operator
+- 🔒 AWS Secrets Manager Integration
 - 📜 Modular Installation Scripts
 - 🛠️ Easy Cluster Recreation
 - 📖 Comprehensive Documentation
@@ -139,6 +141,8 @@ The automation deploys:
 - ✅ Prometheus
 - ✅ Grafana
 - ✅ Argo CD
+- ✅ External Secrets Operator
+- ✅ AWS Secrets Manager Integration
 
 Once the deployment finishes, the cluster is immediately ready for deploying applications using Kubernetes manifests, Helm charts, or GitOps workflows with Argo CD.
 
@@ -195,7 +199,7 @@ Automatically installs:
 - Prometheus
 - Grafana
 - Argo CD
-
+- External Secrets Operator
 ---
 
 ## 🚀 GitOps Ready
@@ -222,6 +226,8 @@ Monitoring stack includes:
 
 ## 🔐 Security
 
+- AWS Secrets Manager Integration
+- External Secrets Operator
 - Kubernetes Secrets
 - IAM Roles
 - Security Groups
@@ -307,7 +313,9 @@ The following architecture illustrates the complete lifecycle of the platform—
                  │ 09 cert-manager                                │
                  │ 10 Prometheus + Grafana                        │
                  │ 11 Argo CD                                     │
-                 │ 12 Local Path Storage                          │
+                 │ 12 Local Path Storage                          │              
+                 │ 13 External Secrets Operator                   │
+                 │ 14 ClusterSecretStore Configuration            │   
                  └────────────────────────────────────────────────┘
                                             │
                  ┌──────────────────────────┴──────────────────────────┐
@@ -330,16 +338,28 @@ The following architecture illustrates the complete lifecycle of the platform—
                                          ▼
                               Platform Services
                                          │
-                ┌────────────────────────┼────────────────────────┐
-                ▼                        ▼                        ▼
-         Helm Package Manager     NGINX Ingress           Argo CD GitOps
-                                                                  │
-                                                                  ▼
-                                                    GitOps Managed Applications
-                                                                  │
-                                     ┌────────────────────────────┼───────────────────────────┐
-                                     ▼                            ▼                           ▼
-                                WordPress                  Backend APIs              Future Workloads
+        ┌────────────────────┬─────────────────────┬──────────────────────┬──────────────────────┐
+        ▼                    ▼                     ▼                      ▼
+   Helm Package Manager  NGINX Ingress      Argo CD GitOps     External Secrets Operator
+                                                                          │
+                                                                          ▼
+                                                              ClusterSecretStore
+                                                                          │
+                                                                          ▼
+                                                               AWS Secrets Manager
+                                                                          │
+                                                                          ▼
+                                                              Kubernetes Secrets
+                                                                          │
+                                                                          ▼
+                                                           GitOps Managed Applications
+                                                                          │
+                              ┌───────────────────────────────┼───────────────────────────────┐
+                              ▼                               ▼                               ▼
+                         WordPress                     Backend APIs                  Future Workloads
+ 
+
+
 ```
 ---
 
@@ -373,6 +393,7 @@ The Kubernetes platform is bootstrapped automatically through a series of modula
 | 10 | `monitoring.sh` | Master | Deploys Prometheus, Grafana, Alertmanager, and Node Exporter. |
 | 11 | `argocd.sh` | Master | Installs and configures Argo CD for GitOps workflows. |
 | 12 | `local-path-storage.sh` | Master | Deploys the Local Path Provisioner and creates the default StorageClass. |
+| 13 | `external-secrets.sh` | Master | Installs the External Secrets Operator, configures the ClusterSecretStore, and integrates the cluster with AWS Secrets Manager for centralized secrets management. |
 
 > **Execution Order:** The scripts are executed sequentially by **cloud-init** during instance initialization. Each stage depends on the successful completion of the previous stage, ensuring a consistent and repeatable Kubernetes platform deployment.
 
@@ -400,6 +421,8 @@ The Kubernetes platform is bootstrapped automatically through a series of modula
 | Shell | Bash | Automation Scripts |
 | Version Control | Git | Source Code Management |
 | Repository | GitHub | Project Hosting |
+| Secrets Management | External Secrets Operator | Synchronize Kubernetes Secrets from AWS Secrets Manager |
+| Cloud Secrets | AWS Secrets Manager | Centralized Secret Storage |
 
 ---
 
@@ -618,7 +641,7 @@ Expected namespaces:
 - argocd
 - cert-manager
 - local-path-storage
-
+- external-secrets
 ---
 
 Verify Kubernetes Pods.
@@ -731,6 +754,59 @@ Verify:
 
 ---
 
+---
+
+# 🔐 Verify External Secrets Management
+
+Verify that the External Secrets Operator components are running.
+
+```bash
+kubectl get pods -n external-secrets
+```
+
+Expected output:
+
+```text
+NAME                                                READY   STATUS
+external-secrets-xxxxx                              1/1     Running
+external-secrets-cert-controller-xxxxx              1/1     Running
+external-secrets-webhook-xxxxx                      1/1     Running
+```
+
+Verify that the ClusterSecretStore has been created successfully.
+
+```bash
+kubectl get clustersecretstore
+```
+
+Expected output:
+
+```text
+NAME               STATUS   CAPABILITIES   READY
+aws-secret-store   Valid    ReadWrite      True
+```
+
+View the ClusterSecretStore details.
+
+```bash
+kubectl describe clustersecretstore aws-secret-store
+```
+
+Expected status:
+
+```text
+Status:
+  Capabilities: ReadWrite
+  Conditions:
+    Type: Ready
+    Status: True
+    Message: store validated
+```
+
+A **Ready=True** status confirms that the External Secrets Operator can successfully authenticate with AWS Secrets Manager using the configured IAM role, enabling GitOps applications to securely retrieve secrets without storing sensitive data in the repository.
+
+---
+
 # 🧪 Cluster Validation Checklist
 
 After deployment, verify the following.
@@ -751,6 +827,8 @@ After deployment, verify the following.
 | Prometheus | ✅ |
 | Grafana | ✅ |
 | Argo CD | ✅ |
+| External Secrets Operator | ✅ |
+| AWS Secrets Manager | ✅ |
 
 ---
 
