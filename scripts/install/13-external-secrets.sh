@@ -12,9 +12,21 @@ kubectl create namespace external-secrets --dry-run=client -o yaml | kubectl app
 helm upgrade --install external-secrets external-secrets/external-secrets \
   --namespace external-secrets
 
-echo "Waiting for External Secrets Operator..."
+echo "Waiting for External Secrets Controller..."
 
 kubectl rollout status deployment/external-secrets \
+  -n external-secrets \
+  --timeout=180s
+
+echo "Waiting for External Secrets Webhook..."
+
+kubectl rollout status deployment/external-secrets-webhook \
+  -n external-secrets \
+  --timeout=180s
+
+echo "Waiting for External Secrets Cert Controller..."
+
+kubectl rollout status deployment/external-secrets-cert-controller \
   -n external-secrets \
   --timeout=180s
 
