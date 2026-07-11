@@ -1,6 +1,8 @@
 #!/bin/bash
 set -e
 
+export KUBECONFIG=/etc/kubernetes/admin.conf
+
 echo "Installing External Secrets Operator..."
 
 helm repo add external-secrets https://charts.external-secrets.io
