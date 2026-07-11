@@ -72,11 +72,12 @@ resource "aws_iam_policy" "k8s_secretsmanager_policy" {
       {
         Effect = "Allow"
 
-        Action = [
+	Action = [
           "secretsmanager:GetSecretValue",
           "secretsmanager:DescribeSecret",
           "secretsmanager:ListSecrets",
           "secretsmanager:ListSecretVersionIds",
+          "secretsmanager:CreateSecret",
           "secretsmanager:PutSecretValue"
         ]
 
@@ -90,3 +91,4 @@ resource "aws_iam_role_policy_attachment" "k8s_secretsmanager_attach" {
   role       = aws_iam_role.k8s_ec2_role.name
   policy_arn = aws_iam_policy.k8s_secretsmanager_policy.arn
 }
+
