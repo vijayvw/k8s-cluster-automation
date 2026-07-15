@@ -36,8 +36,9 @@ Provision a complete Kubernetes platform using <strong>Terraform</strong>, <stro
 - 📂 Dynamic Persistent Storage (Local Path Provisioner)
 - 🚪 NGINX Ingress Controller
 - 🔐 cert-manager for TLS Certificate Management
+- 📊 Metrics Server
 - 📈 Prometheus Monitoring Stack
-- 📊 Grafana Dashboards
+- 📉 Grafana Dashboards
 - 🔄 Argo CD GitOps Platform
 - 🔑 External Secrets Operator
 - 🔒 AWS Secrets Manager Integration
@@ -60,7 +61,7 @@ Provision a complete Kubernetes platform using <strong>Terraform</strong>, <stro
 | Infrastructure | Terraform |
 | Automation | Bash |
 | GitOps | Argo CD |
-| Monitoring | Prometheus + Grafana |
+| Monitoring | Metrics Server + Prometheus + Grafana |
 | License | MIT |
 
 ---
@@ -93,17 +94,20 @@ Provision a complete Kubernetes platform using <strong>Terraform</strong>, <stro
 
 ---
 
+
 # 📖 Executive Summary
 
-Managing Kubernetes clusters manually is time-consuming, repetitive, and prone to configuration drift. Installing every component individually—including the container runtime, Kubernetes binaries, networking, ingress controller, monitoring stack, storage provisioner, and GitOps platform—requires significant effort and increases the likelihood of inconsistent environments.
+Managing Kubernetes clusters manually is time-consuming, repetitive, and prone to configuration drift. Installing every component individually—including the container runtime, Kubernetes binaries, networking, ingress controller, monitoring stack, storage provisioner, secrets management, and GitOps platform—requires significant effort and increases the likelihood of inconsistent environments.
 
 This project solves that problem by providing a fully automated Kubernetes platform deployment on Amazon Web Services (AWS).
 
-Using Infrastructure as Code (IaC) principles, Terraform provisions the required AWS infrastructure, while automated installation scripts bootstrap a production-ready Kubernetes cluster using kubeadm. Once the cluster is operational, additional platform services such as Helm, NGINX Ingress Controller, Local Path Storage Provisioner, Prometheus, Grafana, and Argo CD are installed automatically.
+Using Infrastructure as Code (IaC) principles, Terraform provisions the required AWS infrastructure, while automated installation scripts bootstrap a production-ready multi-node Kubernetes cluster using kubeadm. Once the cluster is operational, essential platform services including **Metrics Server**, **Helm**, **NGINX Ingress Controller**, **cert-manager**, **Local Path Storage Provisioner**, **Prometheus**, **Grafana**, **Argo CD**, and the **External Secrets Operator** are installed automatically.
 
-The final outcome is a Kubernetes platform that is immediately ready to host applications using GitOps workflows without requiring any manual installation of platform components.
+The platform also integrates with **AWS Secrets Manager**, enabling applications to securely retrieve sensitive configuration through the External Secrets Operator without storing secrets directly in Git repositories.
 
-Unlike many Kubernetes tutorials that focus only on cluster creation, this project automates the deployment of an entire Kubernetes platform, providing a repeatable and production-oriented foundation for cloud-native applications.
+The final outcome is a reusable, production-ready Kubernetes platform where infrastructure, networking, observability, GitOps, storage, and secrets management are fully automated, allowing applications to be deployed immediately with minimal manual configuration.
+
+Unlike many Kubernetes tutorials that focus only on cluster creation, this project automates the deployment of an entire Kubernetes platform, providing a repeatable and production-oriented foundation for modern cloud-native applications.
 
 ---
 
@@ -135,6 +139,7 @@ The automation deploys:
 - ✅ containerd Container Runtime
 - ✅ Weave Net CNI
 - ✅ Helm
+- ✅ Metrics Server
 - ✅ NGINX Ingress Controller
 - ✅ Local Path Storage Provisioner
 - ✅ cert-manager
@@ -174,6 +179,7 @@ Once the deployment finishes, the cluster is immediately ready for deploying app
 - Kubernetes package installation
 - Automatic worker join
 - Production-ready cluster configuration
+- Kubernetes API Server with support for Mutating and Validating Admission Webhooks
 
 ---
 
@@ -193,6 +199,7 @@ Once the deployment finishes, the cluster is immediately ready for deploying app
 Automatically installs:
 
 - Helm
+- Metrics Server
 - NGINX Ingress Controller
 - Local Path Storage Provisioner
 - cert-manager
@@ -200,6 +207,7 @@ Automatically installs:
 - Grafana
 - Argo CD
 - External Secrets Operator
+
 ---
 
 ## 🚀 GitOps Ready
@@ -216,6 +224,7 @@ Automatically installs:
 
 Monitoring stack includes:
 
+- Metrics Server
 - Prometheus
 - Grafana
 - Node Exporter
@@ -315,7 +324,7 @@ The following architecture illustrates the complete lifecycle of the platform—
                  │ 11 Argo CD                                     │
                  │ 12 Local Path Storage                          │              
                  │ 13 External Secrets Operator                   │
-                 │ 14 ClusterSecretStore Configuration            │   
+                 │ 14 Metrics Server                              │   
                  └────────────────────────────────────────────────┘
                                             │
                  ┌──────────────────────────┴──────────────────────────┐
@@ -369,7 +378,7 @@ The platform follows an Infrastructure as Code (IaC) approach where Terraform pr
 
 The control plane initializes the Kubernetes cluster using `kubeadm`, while worker nodes automatically join using the generated join command.
 
-Once the cluster is operational, modular installation scripts deploy the remaining platform services including Weave Net, Helm, NGINX Ingress Controller, cert-manager, Local Path Storage, Prometheus, Grafana, and Argo CD.
+Once the cluster is operational, modular installation scripts deploy the remaining platform services including Weave Net, Metrics Server, Helm, NGINX Ingress Controller, cert-manager, Local Path Storage, Prometheus, Grafana, Argo CD, and External Secrets Operator.
 
 The completed platform provides a production-ready Kubernetes environment capable of deploying applications through GitOps workflows.
 
@@ -394,6 +403,7 @@ The Kubernetes platform is bootstrapped automatically through a series of modula
 | 11 | `argocd.sh` | Master | Installs and configures Argo CD for GitOps workflows. |
 | 12 | `local-path-storage.sh` | Master | Deploys the Local Path Provisioner and creates the default StorageClass. |
 | 13 | `external-secrets.sh` | Master | Installs the External Secrets Operator, configures the ClusterSecretStore, and integrates the cluster with AWS Secrets Manager for centralized secrets management. |
+| 14 | `metrics-server.sh` | Master | Deploys the Kubernetes Metrics Server, enabling resource metrics for kubectl top commands and Horizontal Pod Autoscaler (HPA). |
 
 > **Execution Order:** The scripts are executed sequentially by **cloud-init** during instance initialization. Each stage depends on the successful completion of the previous stage, ensuring a consistent and repeatable Kubernetes platform deployment.
 
@@ -415,6 +425,7 @@ The Kubernetes platform is bootstrapped automatically through a series of modula
 | Ingress | NGINX Ingress Controller | HTTP/HTTPS Traffic Routing |
 | Storage | Local Path Provisioner | Dynamic Persistent Volumes |
 | Certificates | cert-manager | TLS Certificate Automation |
+| Monitoring | Metrics Server | Kubernetes Resource Metrics |
 | Monitoring | Prometheus | Metrics Collection |
 | Dashboards | Grafana | Visualization |
 | GitOps | Argo CD | Continuous Delivery |
@@ -650,6 +661,20 @@ Verify Kubernetes Pods.
 kubectl get pods -A
 ```
 
+Verify Metrics Server:
+
+
+```bash
+kubectl top nodes
+
+kubectl top pods -A
+```
+Expected output:
+
+- CPU and memory usage for all nodes
+
+- CPU and memory usage for running pods
+
 All pods should eventually reach the **Running** state.
 
 ---
@@ -726,6 +751,7 @@ kubectl get pods -n monitoring
 
 Verify:
 
+- Metrics Server
 - Prometheus
 - Grafana
 - Alertmanager
@@ -751,8 +777,6 @@ Verify:
 - argocd-application-controller
 - argocd-dex-server
 - argocd-redis
-
----
 
 ---
 
@@ -824,6 +848,7 @@ After deployment, verify the following.
 | NGINX Ingress | ✅ |
 | Local Path Provisioner | ✅ |
 | cert-manager | ✅ |
+| Metrics Server | ✅ |
 | Prometheus | ✅ |
 | Grafana | ✅ |
 | Argo CD | ✅ |
@@ -870,6 +895,7 @@ Core Kubernetes services running successfully.
 
 Automatically deployed platform services.
 
+- Metrics Server
 - NGINX Ingress
 - Local Path Storage
 - Prometheus
@@ -917,6 +943,14 @@ Grafana dashboard exposed through the NGINX Ingress Controller.
 Prometheus monitoring interface exposed through the NGINX Ingress Controller.
 
 ![Prometheus](docs/images/10-prometheus.png)
+
+---
+
+## Metrics Server
+
+Kubernetes resource metrics collected by the Metrics Server, enabling `kubectl top` commands and supporting the Horizontal Pod Autoscaler (HPA).
+
+![Metrics Server](docs/images/11-metrics-server.png)
 
 ---
 
